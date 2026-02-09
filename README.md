@@ -22,6 +22,7 @@ cp .env.example .env
 - `DATABASE_URL`: string de conexão do PostgreSQL.
 - `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET`: credenciais para API Amadeus (opcional).
 - `USE_MOCK_PROVIDER`: `true` para usar dados mock.
+- `DATABASE_SSL`: `true` para habilitar SSL ao conectar no PostgreSQL externo (Render/Railway).
 - `SYNC_ROUTES`: rotas para sincronização automática (`GRU-GIG,GRU-REC`).
 - `SYNC_DAYS_AHEAD`: dias à frente para consultar no job.
 - `DEFAULT_ORIGIN` / `DEFAULT_DESTINATION`: rota padrão quando `SYNC_ROUTES` não estiver definida.
@@ -35,7 +36,7 @@ npm run dev
 
 ## Endpoints
 
-### GET `/api/flights/search`
+### GET `/flights/search`
 
 Parâmetros obrigatórios:
 
@@ -50,7 +51,7 @@ Parâmetro opcional:
 Exemplo:
 
 ```
-GET /api/flights/search?origin=GRU&destination=GIG&date=2024-10-20&maxPrice=900
+GET /flights/search?origin=GRU&destination=GIG&date=2024-10-20&maxPrice=900
 ```
 
 Resposta:
@@ -70,4 +71,3 @@ Resposta:
 ## Job de sincronização
 
 Um job agendado roda a cada 30 minutos para atualizar o banco de dados com dados de passagens. Quando não há credenciais, o sistema usa o provider mock configurável.
-

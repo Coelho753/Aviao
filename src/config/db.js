@@ -1,8 +1,21 @@
 const { Pool } = require('pg');
 const env = require('./env');
 
+const shouldUseSsl = () => {
+  if (env.databaseSsl) {
+    return true;
+  }
+
+  if (!env.databaseUrl) {
+    return false;
+  }
+
+  return !env.databaseUrl.includes('localhost');
+};
+
 const pool = new Pool({
-  connectionString: env.databaseUrl
+  connectionString: env.databaseUrl,
+  ssl: shouldUseSsl() ? { rejectUnauthorized: false } : undefined
 });
 
 const ensureSchema = async () => {
