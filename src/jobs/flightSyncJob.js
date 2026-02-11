@@ -12,9 +12,10 @@ const parseRoutes = () => {
     .map((route) => route.trim())
     .filter(Boolean)
     .map((route) => {
-      const [origin, destination] = route.split('-');
+      const [origin, destination] = route.split('-').map((part) => part?.trim().toUpperCase());
       return { origin, destination };
-    });
+    })
+    .filter((route) => route.origin && route.destination);
 };
 
 const getTargetDate = () => {

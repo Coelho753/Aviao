@@ -15,8 +15,8 @@ module.exports = {
   amadeusClientId: process.env.AMADEUS_CLIENT_ID,
   amadeusClientSecret: process.env.AMADEUS_CLIENT_SECRET,
   useMockProvider: process.env.USE_MOCK_PROVIDER === 'true',
-  syncRoutes: process.env.SYNC_ROUTES,
-  syncDaysAhead: Number(process.env.SYNC_DAYS_AHEAD || 1),
+  syncRoutes: process.env.SYNC_ROUTES || 'GRU-GIG,GRU-FOR,GRU-REC,GRU-SSA',
+  syncDaysAhead: Number(process.env.SYNC_DAYS_AHEAD || 180),
   defaultOrigin: process.env.DEFAULT_ORIGIN || 'GRU',
   defaultDestination: process.env.DEFAULT_DESTINATION || 'GIG'
 };

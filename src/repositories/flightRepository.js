@@ -8,7 +8,7 @@ const saveFlights = async (flights) => {
   const values = [];
   const placeholders = flights
     .map((flight, index) => {
-      const baseIndex = index * 8;
+      const baseIndex = index * 10;
       values.push(
         flight.airline,
         flight.price,
@@ -17,15 +17,17 @@ const saveFlights = async (flights) => {
         flight.date,
         flight.departureTime,
         flight.arrivalTime,
-        flight.duration
+        flight.duration,
+        flight.bookingProvider,
+        flight.purchaseUrl
       );
-      return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, $${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8})`;
+      return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, $${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8}, $${baseIndex + 9}, $${baseIndex + 10})`;
     })
     .join(', ');
 
   const query = `
     INSERT INTO flights (
-      airline, price, origin, destination, flight_date, departure_time, arrival_time, duration
+      airline, price, origin, destination, flight_date, departure_time, arrival_time, duration, booking_provider, purchase_url
     ) VALUES ${placeholders}
     ON CONFLICT DO NOTHING;
   `;
@@ -65,7 +67,9 @@ const searchFlights = async ({ origin, destination, date, maxPrice }) => {
       TO_CHAR(flight_date, 'YYYY-MM-DD') AS date,
       TO_CHAR(departure_time, 'HH24:MI') AS departure_time,
       TO_CHAR(arrival_time, 'HH24:MI') AS arrival_time,
-      duration
+      duration,
+      booking_provider,
+      purchase_url
     FROM flights
     ${whereClause}
     ORDER BY price ASC;

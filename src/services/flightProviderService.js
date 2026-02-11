@@ -2,39 +2,74 @@ const env = require('../config/env');
 
 const fetch = global.fetch || ((...args) => import('node-fetch').then(({ default: fetchFn }) => fetchFn(...args)));
 
+const providers = [
+  {
+    name: 'Google Flights',
+    buildUrl: ({ origin, destination, date }) =>
+      `https://www.google.com/travel/flights?hl=pt-BR#flt=${origin}.${destination}.${date}`
+  },
+  {
+    name: 'Decolar',
+    buildUrl: ({ origin, destination, date }) =>
+      `https://www.decolar.com/shop/flights/results/oneway/${origin.toLowerCase()}/${destination.toLowerCase()}/${date}/1/0/0`
+  },
+  {
+    name: 'Skyscanner',
+    buildUrl: ({ origin, destination, date }) =>
+      `https://www.skyscanner.com.br/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${date.replace(/-/g, '')}/`
+  }
+];
+
+const mockAirlines = ['LATAM', 'GOL', 'AZUL'];
+
+const hash = (input) => {
+  let value = 0;
+  for (const char of input) {
+    value = (value * 31 + char.charCodeAt(0)) % 100000;
+  }
+  return value;
+};
+
+const addMinutes = (time, minutes) => {
+  const [hour, minute] = time.split(':').map(Number);
+  const totalMinutes = hour * 60 + minute + minutes;
+  const normalized = ((totalMinutes % 1440) + 1440) % 1440;
+  const nextHour = String(Math.floor(normalized / 60)).padStart(2, '0');
+  const nextMinute = String(normalized % 60).padStart(2, '0');
+  return `${nextHour}:${nextMinute}`;
+};
+
+const formatDuration = (minutes) => {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h${String(remainingMinutes).padStart(2, '0')}m`;
+};
+
 const generateMockFlights = ({ origin, destination, date }) => {
-  return [
-    {
-      airline: 'GOL',
-      price: 780,
+  return Array.from({ length: 5 }).map((_, index) => {
+    const seed = hash(`${origin}${destination}${date}${index}`);
+    const airline = mockAirlines[seed % mockAirlines.length];
+    const departureHour = 6 + (seed % 15);
+    const departureMinute = (seed % 4) * 15;
+    const departureTime = `${String(departureHour).padStart(2, '0')}:${String(departureMinute).padStart(2, '0')}`;
+    const durationMinutes = 85 + (seed % 140);
+    const arrivalTime = addMinutes(departureTime, durationMinutes);
+    const basePrice = 280 + (seed % 920);
+    const provider = providers[seed % providers.length];
+
+    return {
+      airline,
+      price: Number(basePrice.toFixed(2)),
       origin,
       destination,
       date,
-      departureTime: '08:00',
-      arrivalTime: '10:40',
-      duration: '2h40m'
-    },
-    {
-      airline: 'LATAM',
-      price: 920,
-      origin,
-      destination,
-      date,
-      departureTime: '14:30',
-      arrivalTime: '17:20',
-      duration: '2h50m'
-    },
-    {
-      airline: 'AZUL',
-      price: 850,
-      origin,
-      destination,
-      date,
-      departureTime: '18:10',
-      arrivalTime: '20:55',
-      duration: '2h45m'
-    }
-  ];
+      departureTime,
+      arrivalTime,
+      duration: formatDuration(durationMinutes),
+      bookingProvider: provider.name,
+      purchaseUrl: provider.buildUrl({ origin, destination, date })
+    };
+  });
 };
 
 const getAccessToken = async () => {
@@ -78,7 +113,9 @@ const mapAmadeusFlights = (offers) => {
       date: departure ? departure.toISOString().slice(0, 10) : null,
       departureTime: departure ? departure.toISOString().slice(11, 16) : '00:00',
       arrivalTime: arrival ? arrival.toISOString().slice(11, 16) : '00:00',
-      duration: itinerary?.duration?.replace('PT', '') || 'N/A'
+      duration: itinerary?.duration?.replace('PT', '') || 'N/A',
+      bookingProvider: 'Amadeus',
+      purchaseUrl: 'https://www.google.com/travel/flights'
     };
   });
 };
