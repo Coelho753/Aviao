@@ -1,4 +1,6 @@
 const flightService = require('../services/flightService');
+const env = require('../config/env');
+const airports = require('../config/airports');
 
 const searchFlights = async (req, res) => {
   try {
@@ -11,8 +13,8 @@ const searchFlights = async (req, res) => {
     }
 
     const filters = {
-      origin,
-      destination,
+      origin: origin.toUpperCase(),
+      destination: destination.toUpperCase(),
       date,
       maxPrice: maxPrice ? Number(maxPrice) : undefined
     };
@@ -22,9 +24,14 @@ const searchFlights = async (req, res) => {
     const response = flights.map((flight) => ({
       airline: flight.airline,
       price: Number(flight.price),
+      origin: flight.origin,
+      destination: flight.destination,
+      date: flight.date,
       departureTime: flight.departure_time,
       arrivalTime: flight.arrival_time,
-      duration: flight.duration
+      duration: flight.duration,
+      bookingProvider: flight.booking_provider,
+      purchaseUrl: flight.purchase_url
     }));
 
     return res.json(response);
@@ -35,5 +42,14 @@ const searchFlights = async (req, res) => {
 };
 
 module.exports = {
-  searchFlights
+  searchFlights,
+  listAirports: (_req, res) => {
+    return res.json(airports);
+  },
+  getSearchConfig: (_req, res) => {
+    return res.json({
+      syncDaysAhead: env.syncDaysAhead,
+      airports
+    });
+  }
 };

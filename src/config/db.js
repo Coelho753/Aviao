@@ -19,12 +19,22 @@ const ensureSchema = async () => {
         departure_time TIME NOT NULL,
         arrival_time TIME NOT NULL,
         duration VARCHAR(20) NOT NULL,
+        booking_provider VARCHAR(80) NOT NULL DEFAULT 'N/A',
+        purchase_url TEXT NOT NULL DEFAULT '',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `);
     await client.query(`
+      ALTER TABLE flights
+      ADD COLUMN IF NOT EXISTS booking_provider VARCHAR(80) NOT NULL DEFAULT 'N/A';
+    `);
+    await client.query(`
+      ALTER TABLE flights
+      ADD COLUMN IF NOT EXISTS purchase_url TEXT NOT NULL DEFAULT '';
+    `);
+    await client.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS flights_unique_idx
-      ON flights (airline, price, origin, destination, flight_date, departure_time, arrival_time, duration);
+      ON flights (airline, price, origin, destination, flight_date, departure_time, arrival_time, duration, purchase_url);
     `);
   } finally {
     client.release();
